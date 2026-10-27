@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#101820">
+    <title>Smart Financial Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="app.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+    <button class="sidebar-backdrop" id="sidebar-backdrop" type="button" aria-label="Close navigation"></button>
+    <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+        <a class="brand" href="#dashboard" aria-label="Smart Budget home">
+            <span class="brand-mark" aria-hidden="true">₦</span>
+            <span>ClearLedger</span>
+        </a>
+        <nav class="side-nav">
+            <a class="nav-link is-active" href="#dashboard"><span class="nav-icon"
+                    aria-hidden="true">⌂</span>Dashboard</a>
+            <a class="nav-link" href="#planner"><span class="nav-icon" aria-hidden="true">◇</span>Budget planner</a>
+            <a class="nav-link" href="#transactions"><span class="nav-icon" aria-hidden="true">↕</span>Transactions</a>
+        </nav>
+        <div class="sidebar-foot">
+            <span class="status-dot"></span>
+            <span>Your finances, in focus</span>
+        </div>
+    </aside>
+
+    <main class="app-main" id="dashboard">
+        <header class="topbar">
+            <button class="icon-button menu-toggle" id="menu-toggle" type="button" aria-label="Open navigation"
+                aria-expanded="false">
+                <span aria-hidden="true">☰</span>
+            </button>
+            <div class="page-heading">
+                <p class="eyebrow">PERSONAL FINANCE</p>
+                <h1>Overview</h1>
+            </div>
+            <div class="topbar-tools">
+                <label class="period-control" for="period-filter">
+                    <span class="control-label">View</span>
+                    <select id="period-filter" aria-label="Choose a reporting month or yearly overview">
+                        <option value="monthly">Monthly</option>
+                    </select>
+                </label>
+                <div class="desktop-actions" id="quick-actions">
+                    <button class="button button-quiet" type="button" data-open-dialog="budget-dialog">Set
+                        budget</button>
+                    <button class="button button-positive" type="button" data-open-transaction="inflow">＋ Cash
+                        in</button>
+                    <button class="button button-negative" type="button" data-open-transaction="outflow">− Cash
+                        out</button>
+                </div>
+                <div class="user-chip" aria-live="polite"><span class="user-avatar" id="user-avatar">C</span><span
+                        id="welcome-message">Welcome</span></div>
+            </div>
+        </header>
+
+        <div class="page-content">
+            <section class="kpi-grid" id="kpi-grid" aria-label="Financial summary">
+                <article class="kpi-card">
+                    <div class="kpi-head"><span class="kpi-label">Available balance</span><span
+                            class="kpi-icon">↗</span></div>
+                    <p class="kpi-value" id="kpi-balance">₦0</p>
+                    <p class="kpi-note" id="kpi-balance-note">Inflow minus outflow</p>
+                </article>
+                <article class="kpi-card">
+                    <div class="kpi-head"><span class="kpi-label">Total inflow</span><span
+                            class="kpi-icon positive-icon">＋</span></div>
+                    <p class="kpi-value positive-text" id="kpi-inflow">₦0</p>
+                    <p class="kpi-note">Income received</p>
+                </article>
+                <article class="kpi-card">
+                    <div class="kpi-head"><span class="kpi-label">Total outflow</span><span
+                            class="kpi-icon negative-icon">−</span></div>
+                    <p class="kpi-value negative-text" id="kpi-outflow">₦0</p>
+                    <p class="kpi-note">Money spent</p>
+                </article>
+                <article class="kpi-card">
+                    <div class="kpi-head"><span class="kpi-label">Budget remaining</span><span class="kpi-icon">◎</span>
+                    </div>
+                    <p class="kpi-value" id="kpi-remaining">₦0</p>
+                    <p class="kpi-note" id="kpi-budget-note">Set a monthly budget</p>
+                </article>
+            </section>
+
+            <section class="content-grid" aria-label="Financial activity">
+                <div class="primary-column">
+                    <section class="panel chart-panel" id="cashflow-panel" aria-labelledby="cashflow-title">
+                        <div class="panel-heading">
+                            <div>
+                                <p class="eyebrow">CASH FLOW</p>
+                                <h2 id="cashflow-title">Balance movement</h2>
+                            </div>
+                            <span class="chart-key"><span class="chart-key-dot"></span>Running balance</span>
+                        </div>
+                        <div class="chart-wrap"><canvas id="cashflow-chart" aria-label="Running balance chart"></canvas>
+                        </div>
+                        <p class="chart-empty" id="chart-empty" hidden>Add an income or expense to chart cash flow.</p>
+                    </section>
+
+                    <section class="panel ledger-panel" id="ledger-panel" aria-labelledby="ledger-title">
+                        <div class="panel-heading ledger-heading">
+                            <div>
+                                <p class="eyebrow">ACTIVITY</p>
+                                <h2 id="ledger-title">Transactions</h2>
+                            </div>
+                            <span class="item-count" id="transaction-count">0 entries</span>
+                        </div>
+                        <div class="table-scroll">
+                            <table class="transaction-table" id="transaction-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Description</th>
+                                        <th scope="col">Category</th>
+                                        <th scope="col">Date</th>
+                                        <th scope="col" class="amount-heading">Amount</th>
+                                        <th scope="col"><span class="visually-hidden">Actions</span></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transaction-list"></tbody>
+                            </table>
+                            <div class="empty-state" id="transaction-empty" hidden>
+                                <span class="empty-icon" aria-hidden="true">↕</span>
+                                <p>No transactions for this period.</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <aside class="secondary-column">
+                    <section class="panel budget-panel" id="planner" aria-labelledby="budget-title">
+                        <div class="panel-heading">
+                            <div>
+                                <p class="eyebrow">MONTHLY PLAN</p>
+                                <h2 id="budget-title">Spending limit</h2>
+                            </div>
+                            <button class="icon-button edit-budget" type="button" data-open-dialog="budget-dialog"
+                                aria-label="Edit budget">✎</button>
+                        </div>
+                        <p class="budget-amount" id="budget-amount">₦0</p>
+                        <div class="progress-track" role="progressbar" id="budget-progress" aria-label="Budget spent"
+                            aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                            <span class="progress-fill" id="budget-progress-fill"></span>
+                        </div>
+                        <div class="budget-meta"><span id="budget-spent-label">₦0 spent</span><span
+                                id="budget-percent">0%</span></div>
+                        <p class="budget-status" id="budget-status">Set a target to start tracking.</p>
+                        <div class="section-divider"></div>
+                        <div class="panel-heading planner-heading">
+                            <div>
+                                <p class="eyebrow">NEXT UP</p>
+                                <h2>Planned purchases</h2>
+                            </div>
+                            <button class="text-button" type="button" data-open-dialog="budget-dialog">＋ Add</button>
+                        </div>
+                        <p class="planner-total" id="planner-total">No planned purchases</p>
+                        <ul class="planned-list" id="planned-list"></ul>
+                        <p class="planner-affordability" id="planner-affordability"></p>
+                    </section>
+
+                    <section class="panel insight-panel" aria-label="Period summary">
+                        <p class="eyebrow">AT A GLANCE</p>
+                        <p class="insight-copy" id="period-insight">Your selected period summary will appear here.</p>
+                    </section>
+                </aside>
+            </section>
+        </div>
+    </main>
+
+    <nav class="mobile-actions" aria-label="Quick actions">
+        <button class="button button-positive" type="button" data-open-transaction="inflow">＋ Cash in</button>
+        <button class="button button-negative" type="button" data-open-transaction="outflow">− Cash out</button>
+        <button class="button button-quiet" type="button" data-open-dialog="budget-dialog">Set budget</button>
+    </nav>
+
+    <dialog class="app-dialog" id="transaction-dialog" aria-labelledby="transaction-dialog-title">
+        <div class="dialog-heading">
+            <div>
+                <p class="eyebrow">RECORD ACTIVITY</p>
+                <h2 id="transaction-dialog-title">Add cash in</h2>
+            </div><button class="icon-button dialog-close" type="button" data-close-dialog aria-label="Close">×</button>
+        </div>
+        <div class="transaction-mode" role="group" aria-label="Transaction type">
+            <button class="mode-button is-selected" id="cashin-button" type="button" data-mode="inflow">＋ Cash
+                in</button>
+            <button class="mode-button" id="cashout-button" type="button" data-mode="outflow">− Cash out</button>
+        </div>
+        <form class="form-stack" id="transaction-form">
+            <label class="field-label" for="transaction-amount">Amount</label>
+            <div class="currency-input"><span aria-hidden="true">₦</span><input id="transaction-amount" type="number"
+                    min="1" step="1" inputmode="numeric" placeholder="0" required></div>
+            <label class="field-label" for="transaction-description" id="description-label">Income source</label>
+            <input class="text-input" id="transaction-description" type="text" placeholder="Salary, client gig..."
+                maxlength="80" required>
+            <label class="field-label" for="transaction-category" id="category-label">Category</label>
+            <input class="text-input" id="transaction-category" type="text" placeholder="Income" maxlength="40">
+            <label class="field-label" for="transaction-date">Date</label>
+            <input class="text-input" id="transaction-date" type="date" required>
+            <button class="button button-submit" id="transaction-submit" type="submit">Save cash in</button>
+        </form>
+    </dialog>
+
+    <dialog class="app-dialog" id="budget-dialog" aria-labelledby="budget-dialog-title">
+        <div class="dialog-heading">
+            <div>
+                <p class="eyebrow">PLAN AHEAD</p>
+                <h2 id="budget-dialog-title">Budget & purchases</h2>
+            </div><button class="icon-button dialog-close" type="button" data-close-dialog aria-label="Close">×</button>
+        </div>
+        <form class="form-stack" id="budget-form">
+            <label class="field-label" for="budget-input">Monthly budget target</label>
+            <div class="currency-input"><span aria-hidden="true">₦</span><input id="budget-input" type="number" min="0"
+                    step="1" inputmode="numeric" placeholder="300,000" required></div>
+            <button class="button button-submit" type="submit">Save budget</button>
+        </form>
+        <div class="dialog-divider"></div>
+        <form class="form-stack" id="planner-form">
+            <h3>Add a planned purchase</h3>
+            <label class="field-label" for="planned-item">What do you want to buy?</label>
+            <input class="text-input" id="planned-item" type="text" placeholder="e.g. Laptop" maxlength="80" required>
+            <label class="field-label" for="planned-cost">Estimated cost</label>
+            <div class="currency-input"><span aria-hidden="true">₦</span><input id="planned-cost" type="number" min="1"
+                    step="1" inputmode="numeric" placeholder="0" required></div>
+            <label class="field-label" for="planned-duration">When do you plan to buy it?</label>
+            <select class="text-input" id="planned-duration">
+                <option value="This month">This month</option>
+                <option value="Next month">Next month</option>
+                <option value="Later">Later</option>
+            </select>
+            <button class="button button-submit" type="submit">Add to plan</button>
+        </form>
+    </dialog>
+
+    <dialog class="welcome-dialog" id="welcome-dialog" aria-labelledby="welcome-title">
+        <div class="welcome-mark" aria-hidden="true">₦</div>
+        <p class="eyebrow">WELCOME TO CLEARLEDGER</p>
+        <h2 id="welcome-title">A clearer view of your money starts here.</h2>
+        <p class="welcome-copy">Input your name, so we can start tracking your budget and help you spend money with
+            clarity.</p>
+        <form class="form-stack" id="onboarding-form">
+            <label class="field-label" for="onboarding-name">Your name</label>
+            <input class="text-input" id="onboarding-name" type="text" autocomplete="name" maxlength="40"
+                placeholder="e.g. Amara" required>
+            <button class="button button-submit" type="submit">Get started <span aria-hidden="true">→</span></button>
+        </form>
+    </dialog>
+
+    <div class="tour-shade" id="tour-shade" hidden></div>
+    <div class="tour-spotlight" id="tour-spotlight" hidden></div>
+    <section class="tour-card" id="tour-card" aria-live="polite" aria-labelledby="tour-title" hidden>
+        <div class="tour-card-top"><span class="tour-step-count" id="tour-step-count"></span><button class="tour-skip"
+                id="tour-skip" type="button">Skip tour</button></div>
+        <h2 id="tour-title"></h2>
+        <p id="tour-copy"></p>
+        <form class="tour-form" id="tour-form" hidden>
+            <label class="field-label" id="tour-input-label" for="tour-amount"></label>
+            <div class="currency-input"><span aria-hidden="true">₦</span><input id="tour-amount" type="number" min="0"
+                    step="1" inputmode="numeric" placeholder="0" required></div>
+            <button class="button button-submit" id="tour-next" type="submit">Save & continue</button>
+        </form>
+        <button class="button button-submit tour-continue" id="tour-continue" type="button">Continue <span
+                aria-hidden="true">→</span></button>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="tracker.js" defer></script>
+</body>
+
+</html>
